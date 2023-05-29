@@ -1,4 +1,4 @@
-package cmd
+package commands
 
 import (
 	"encoding/json"
@@ -8,8 +8,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var username string
+
+func init() {
+	rootCmd.AddCommand(get_user_data_CMD)
+	get_user_data_CMD.Flags().StringVarP(&username, "username", "u", "", "Github username")
+	get_user_data_CMD.MarkFlagRequired("username")
+}
+
 var get_user_data_CMD = &cobra.Command{
-	Use:   "uname",
+	Use:   "get-data",
 	Short: "Get user data",
 	Long:  "Get user data",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -24,19 +32,13 @@ var get_user_data_CMD = &cobra.Command{
 	},
 }
 
-var username string
-
-func init() {
-	rootCmd.AddCommand(get_user_data_CMD)
-	get_user_data_CMD.Flags().StringVarP(&username, "username", "u", "", "Github username")
-	get_user_data_CMD.MarkFlagRequired("username")
-}
-
+// User entities
 type userData struct {
 	Name string `json:"name"`
 	Bio  string `json:"bio"`
 }
 
+// Service
 func get_github_user_data(username string) (*userData, error) {
 	url := fmt.Sprintf("https://api.github.com/users/%s", username)
 	resp, err := http.Get(url)

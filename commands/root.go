@@ -1,4 +1,4 @@
-package cmd
+package commands
 
 import (
 	"github.com/spf13/cobra"
@@ -6,7 +6,7 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:   "cobra",
+		Use:   "hbgstcl",
 		Short: "Github Stats CLI App",
 		Long:  `Github Stats CLI App`,
 	}
