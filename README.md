@@ -5,7 +5,8 @@
 ![Preview](/assets/img/preview.png)
 
 ```sh
-hbgstcl get-data --username="ahmadhabibi14"
+# Just run this script like this :
+hbgstcl --username="ahmadhabibi14"
 ```
 
 ### Github Route API

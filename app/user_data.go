@@ -1,81 +1,77 @@
-package commands
+package app
 
 import (
 	"encoding/json"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-
-	"github.com/spf13/cobra"
 )
-
-var username string
-
-func init() {
-	rootCmd.AddCommand(get_user_data_CMD)
-	get_user_data_CMD.Flags().StringVarP(&username, "username", "u", "", "Github username")
-	get_user_data_CMD.MarkFlagRequired("username")
-}
-
-var get_user_data_CMD = &cobra.Command{
-	Use:   "get-data",
-	Short: "Get user data",
-	Long:  "Get user data",
-	Run: func(cmd *cobra.Command, args []string) {
-		get_github_user_data(username)
-	},
-}
 
 // User entities
 type userData struct {
-	Name string `json:"name"`
-	Bio  string `json:"bio"`
+	Name   string `json:"name"`
+	Bio    string `json:"bio"`
+	Avatar string `json:"avatar_url"`
 }
 
 // Service
-func get_github_user_data(username string) {
+func GetGithubUserData(username string) {
 	url := fmt.Sprintf("https://api.github.com/users/%s", username)
 	resp, err := http.Get(url)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return
 	}
-
 	var user userData
 	err = json.NewDecoder(resp.Body).Decode(&user)
 	if err != nil {
 		return
 	}
+	fetchImage, err := http.Get(user.Avatar)
+	if err != nil {
+		return
+	}
+	var images []image.Image
+	img, _, err := image.Decode(fetchImage.Body)
+	if err != nil {
+		return
+	}
+	images = append(images, img)
 
 	// +===================== View ================+
-
+	// Profile Picture
+	prof_pict := widgets.NewImage(nil)
+	prof_pict.Image = images[0]
 	// Name
 	name := widgets.NewParagraph()
 	name.Title = "Name"
 	name.Text = user.Name
-
 	// Bio
 	bio := widgets.NewParagraph()
 	bio.Title = "Bio"
 	bio.Text = user.Bio
-
 	// Grid layout
 	grid := ui.NewGrid()
-	termWidth, _ := ui.TerminalDimensions()
-	grid.SetRect(0, 0, termWidth, 3)
+	termWidth, termHeight := ui.TerminalDimensions()
+	grid.SetRect(0, 0, termWidth, termHeight)
 	grid.Set(
-		ui.NewRow(2.0/2,
-			ui.NewCol(1.0/2, name),
-			ui.NewCol(1.0/2, bio),
+		ui.NewRow(2.0/5,
+			ui.NewCol(1.0/4, prof_pict),
+			ui.NewCol(3.0/4,
+				ui.NewRow(1.0/2, name),
+				ui.NewRow(1.0/2, bio),
+			),
 		),
 	)
 	ui.Render(grid)
-
 	return
 }

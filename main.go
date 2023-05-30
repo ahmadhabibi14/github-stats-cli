@@ -14,14 +14,8 @@ func main() {
 	}
 	defer ui.Close()
 
-	// This is the actual app, yeahhh:
-	cmd.Execute() // <<<<< main app okay??
-	// until this
-
-	// terminate := make(chan os.Signal, 1)
-	// signal.Notify(terminate, os.Interrupt, syscall.SIGTERM)
-	// <-terminate
-	// fmt.Println("Exiting")
+	// This is the actual app:
+	cmd.Execute()
 
 	uiEvents := ui.PollEvents()
 	for {
