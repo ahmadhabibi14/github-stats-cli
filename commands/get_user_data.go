@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	ui "github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
+
 	"github.com/spf13/cobra"
 )
 
@@ -21,14 +24,7 @@ var get_user_data_CMD = &cobra.Command{
 	Short: "Get user data",
 	Long:  "Get user data",
 	Run: func(cmd *cobra.Command, args []string) {
-		user, err := get_github_user_data(username)
-		if err != nil {
-			fmt.Println("error: ", err)
-			return
-		}
-
-		fmt.Println("Name: ", user.Name)
-		fmt.Println("Bio: ", user.Bio)
+		get_github_user_data(username)
 	},
 }
 
@@ -39,23 +35,47 @@ type userData struct {
 }
 
 // Service
-func get_github_user_data(username string) (*userData, error) {
+func get_github_user_data(username string) {
 	url := fmt.Sprintf("https://api.github.com/users/%s", username)
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GitHub API request failed with status: %s", resp.Status)
+		return
 	}
 
 	var user userData
 	err = json.NewDecoder(resp.Body).Decode(&user)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return &user, nil
+	// +===================== View ================+
+
+	// Name
+	name := widgets.NewParagraph()
+	name.Title = "Name"
+	name.Text = user.Name
+
+	// Bio
+	bio := widgets.NewParagraph()
+	bio.Title = "Bio"
+	bio.Text = user.Bio
+
+	// Grid layout
+	grid := ui.NewGrid()
+	termWidth, _ := ui.TerminalDimensions()
+	grid.SetRect(0, 0, termWidth, 3)
+	grid.Set(
+		ui.NewRow(2.0/2,
+			ui.NewCol(1.0/2, name),
+			ui.NewCol(1.0/2, bio),
+		),
+	)
+	ui.Render(grid)
+
+	return
 }
