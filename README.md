@@ -1,6 +1,6 @@
 ### Github Stats CLI
 
-##### I want to make it like this picture below, just wait
+##### I want to make it like this picture below, just wait 😈
 
 ![Preview](/assets/img/preview.png)
 
