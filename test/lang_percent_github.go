@@ -30,21 +30,15 @@ func main() {
 		return
 	}
 	defer response.Body.Close()
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Error reading API response:", err)
-		return
-	}
-
-	err = json.Unmarshal(body, &Repositories)
+	err = json.NewDecoder(response.Body).Decode(&Repositories)
 	if err != nil {
 		fmt.Println("Error unwofu:", err)
 		return
 	}
 
-	for index, value := range Repositories {
-		fmt.Printf("%d. %s\n", index+1, value.Name)
-		fmt.Println("+===========================================+")
+	fmt.Println("+===========================================+")
+	for _, value := range Repositories {
+		// fmt.Printf("%d. %s\n", index+1, value.Name)
 
 		reposUrl := fmt.Sprintf("%s/languages", value.Url)
 		resp, err := http.Get(reposUrl)
@@ -71,8 +65,12 @@ func main() {
 		}
 
 	}
+	fmt.Println("+===========================================+")
+	fmt.Println(langMap)
 
-	fmt.Println(dataLang)
+	// for index, vals := range dataLang {
+	// 	fmt.Printf("%d. %s\n", index, vals)
+	// }
 	// err = json.NewDecoder(resp.Body).Decode(&data)
 	// if err != nil {
 	// 	log.Println("Error decode data")
