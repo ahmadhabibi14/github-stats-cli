@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 )
 
 type repository struct {
@@ -14,10 +14,10 @@ type repository struct {
 }
 
 var Repositories []repository
-var dataLang []map[string]int
-var langMap map[string]int
 
-// var LanguagesPercentage map[string]float64
+var languages = make(map[string]int) // all languages with total for whole repositories
+var langItem = make(map[string]int)  // this for store temporary data
+var LangToFetch = make(map[string]float64)
 var total int = 0
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 	defer response.Body.Close()
 	err = json.NewDecoder(response.Body).Decode(&Repositories)
 	if err != nil {
-		fmt.Println("Error unwofu:", err)
+		fmt.Println("Error Decode response :", err)
 		return
 	}
 
@@ -40,6 +40,7 @@ func main() {
 	for _, value := range Repositories {
 		// fmt.Printf("%d. %s\n", index+1, value.Name)
 
+		// Request languages data from repository
 		reposUrl := fmt.Sprintf("%s/languages", value.Url)
 		resp, err := http.Get(reposUrl)
 		if err != nil {
@@ -47,40 +48,72 @@ func main() {
 			return
 		}
 		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
+		err = json.NewDecoder(resp.Body).Decode(&langItem)
 		if err != nil {
-			fmt.Println("Error reading API response:", err)
+			log.Println("Error decode languages data from repository : ", err)
 			return
 		}
-
-		err = json.Unmarshal(body, &langMap)
-		if err != nil {
-			log.Println("Error unmarshall :: ", err)
-			return
+		for key, value := range langItem {
+			if val, ok := languages[key]; ok {
+				languages[key] += val
+			} else {
+				languages[key] = value
+			}
 		}
-
-		for key, val := range langMap {
-			langMap[key] = val
-			dataLang = append(dataLang, langMap)
-		}
-
 	}
 	fmt.Println("+===========================================+")
-	fmt.Println(langMap)
+	for _, value := range languages {
+		// fmt.Printf("%s : %d\n", key, value)
+		total += value
+	}
+	iterations := len(languages)
+	if iterations > 8 {
+		iterations = 8
+	}
+	sortedLanguages := sortMapByValueDesc(languages)
+	for i := 0; i < iterations; i++ {
+		lang := sortedLanguages[i].Key
+		size := sortedLanguages[i].Value
+		percentage := float64(size) / float64(total) * 100
 
-	// for index, vals := range dataLang {
-	// 	fmt.Printf("%d. %s\n", index, vals)
-	// }
-	// err = json.NewDecoder(resp.Body).Decode(&data)
-	// if err != nil {
-	// 	log.Println("Error decode data")
-	// 	return
-	// }
+		LangToFetch[lang] = percentage
+	}
+	fmt.Println("+===========================================+")
 
-	// for _, value := range data {
-	// 	total += value
-	// }
+	for key, value := range LangToFetch {
+		perc := fmt.Sprintf("%.2f%", value)
+		fmt.Printf("%v : %v\n", key, perc)
+	}
+	return
+}
 
-	// fmt.Println(total)
-	// fmt.Println(data)
+// Helper function to sort the map by values in descending order
+type pair struct {
+	Key   string
+	Value int
+}
+
+type pairList []pair
+
+func (p pairList) Len() int {
+	return len(p)
+}
+
+func (p pairList) Less(i, j int) bool {
+	return p[i].Value > p[j].Value
+}
+
+func (p pairList) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+func sortMapByValueDesc(m map[string]int) pairList {
+	pairs := make(pairList, len(m))
+	i := 0
+	for k, v := range m {
+		pairs[i] = pair{k, v}
+		i++
+	}
+	sort.Sort(pairs)
+	return pairs
 }

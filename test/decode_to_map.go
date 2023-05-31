@@ -27,7 +27,7 @@ func main() {
 		return
 	}
 
-	for i := 0; i <= 2; i++ {
+	for i := 1; i < 2; i++ {
 		for key, value := range item {
 			if val, ok := languages[key]; ok {
 				languages[key] += val
