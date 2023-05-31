@@ -55,6 +55,7 @@ func GetGithubUserData(username string) {
 	name := widgets.NewParagraph()
 	name.Title = "Name"
 	name.Text = user.Name
+	name.BorderStyle.Fg = ui.ColorBlue
 	// Bio
 	bio := widgets.NewParagraph()
 	bio.Title = "Bio"
