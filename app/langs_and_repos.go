@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"encoding/json"
@@ -14,15 +14,13 @@ type repository struct {
 }
 
 var Repositories []repository
-
-var languages = make(map[string]int) // all languages with total for whole repositories
-var langItem = make(map[string]int)  // this for store temporary data
-var LangToFetch = make(map[string]float64)
+var languages = make(map[string]int)       // all languages with total for whole repositories
+var langItem = make(map[string]int)        // this for store temporary data
+var LangToFetch = make(map[string]float64) // 8 or less languages to show up
 var total int = 0
 
-func main() {
-	username := "ahmadhabibi14"
-	apiUrl := fmt.Sprintf("https://api.github.com/users/%s/repos", username)
+func LangsAndRepos(url string) {
+	apiUrl := fmt.Sprintf("%s/repos", url)
 	// Send GET request to fetch user Repositories
 	response, err := http.Get(apiUrl)
 	if err != nil {
@@ -35,8 +33,6 @@ func main() {
 		fmt.Println("Error Decode response :", err)
 		return
 	}
-
-	fmt.Println("+===========================================+")
 	for _, value := range Repositories {
 		// fmt.Printf("%d. %s\n", index+1, value.Name)
 
@@ -54,16 +50,14 @@ func main() {
 			return
 		}
 		for key, value := range langItem {
-			if val, ok := languages[key]; ok {
-				languages[key] += val
+			if _, ok := languages[key]; ok {
+				languages[key] += value
 			} else {
 				languages[key] = value
 			}
 		}
 	}
-	fmt.Println("+===========================================+")
 	for _, value := range languages {
-		// fmt.Printf("%s : %d\n", key, value)
 		total += value
 	}
 	iterations := len(languages)
@@ -78,12 +72,6 @@ func main() {
 
 		LangToFetch[lang] = percentage
 	}
-	fmt.Println("+===========================================+")
-
-	for key, value := range LangToFetch {
-		perc := fmt.Sprintf("%.2f%", value)
-		fmt.Printf("%v : %v\n", key, perc)
-	}
 	return
 }
 
@@ -92,21 +80,17 @@ type pair struct {
 	Key   string
 	Value int
 }
-
 type pairList []pair
 
 func (p pairList) Len() int {
 	return len(p)
 }
-
 func (p pairList) Less(i, j int) bool {
 	return p[i].Value > p[j].Value
 }
-
 func (p pairList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
-
 func sortMapByValueDesc(m map[string]int) pairList {
 	pairs := make(pairList, len(m))
 	i := 0

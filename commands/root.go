@@ -11,7 +11,7 @@ var rootCmd = &cobra.Command{
 	Short: "Github Stats CLI App",
 	Long:  `Github Stats CLI App`,
 	Run: func(cmd *cobra.Command, args []string) {
-		app.GetGithubUserData(username)
+		app.MainApp(username)
 	},
 }
 
